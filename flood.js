@@ -158,16 +158,9 @@ function addCaptchaButtonListener() {
             };
             await sendMessageToSocket(joinMessage);
             await fetchUserList(roomName);
-            await chat('syntax-error', 'your message here');
-          const room = document.getElementById('room').value;
+                 const room = document.getElementById('room').value;
          
-           if (sendWelcomeMessages) {
-                const welcomeMessage = `Hello world, I'm a web bot! Welcome, ${currentUsername}!`;
-                await sendMessage(welcomeMessage);
-            }
-        } else {
-            statusDiv.textContent = 'Not connected to server';
-        }
+           
     }
 
     function rejoinRoomIfNecessary() {
@@ -515,19 +508,7 @@ statusCount.textContent = `Total User: ${count}`;
             await setRole(userName, 'outcast');
         }
 
-        if (sendWelcomeMessages) {
-            const welcomeMessages = [
-                `welcome ${userName}`,
-                `Nice to see you here ${userName}`,
-                `Hi ${userName}`,
-                `Welcome ${userName} here at ${roomName}`,
-                `how are you ${userName}`,
-                `welcome to ${roomName} ${userName}`
-            ];
-            const randomWelcomeMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-            await sendMessage(randomWelcomeMessage);
-        }
-
+        
         // Add the new user to the user list
         userList.push({ username: userName, role });
         updateUserListbox();
@@ -537,12 +518,7 @@ statusCount.textContent = `Total User: ${count}`;
  //statusCount.textContent = `Total User: ${count}`;
    //   userListbox.textContent = `Current User: ${count}`;
              statusCount.textContent = `Total User: ${count}`;
-//  joinlog.textContent = `you join the  ${roomName }`;
-       if (sendWelcomeMessages) {
-            const goodbyeMessage = `Bye ${userName}!`;
-            await sendMessage(goodbyeMessage);
-        }
-
+       
         // Remove the user from the user list
         userList = userList.filter(user => user.username !== userName);
         updateUserListbox();
@@ -580,101 +556,11 @@ if (trimmedBody.startsWith('pv@')) {
 } else {
     console.log(`Message does not start with 'pv@': ${trimmedBody}`);
 }
-
-
-
-       //==============
-const activateQuizCheckbox = document.getElementById('activateQuizCheckbox');   
-if (activateQuizCheckbox.checked) {
-    const userMessage = body.trim().toLowerCase();
-
-    // Check if the user message matches the current answer
-    if (currentAnswer && userMessage === currentAnswer.toLowerCase()) {
-        const score = getScore(attempts); // Calculate score based on attempts
-      //  await sendMessage(`Correct! You earn ${score} points.`);
-
-        // Update user score
-        if (!userScores[from]) {
-            userScores[from] = 0;
-        }
-        userScores[from] += score;
-
-        await sendMessage(`Correct! You earn ${score} points. ${from}, your current score is: ${userScores[from]}`);
-
-        // Set the flag to indicate the question was answered correctly
-        answeredCorrectly = true;
-        attempts = maxAttempts; // Exit the current question loop
-        return; // Stop processing this message
-    }
-}
-
-//==========================
-
-
-
  const masterUsernames = masterInput.value.split('#').map(username => username.trim());
 
     if (masterUsernames.includes(from)) {
 
-    if (body === '+wc') {
-     
-            welcomeCheckbox.checked = true;
-            sendWelcomeMessages = true;
-            await sendMessage('Welcome messages activated.');
-     
-    } else if (body === '-wc') {
-       
-            welcomeCheckbox.checked = false;
-            sendWelcomeMessages = false;
-            await sendMessage('Welcome messages deactivated.');
-      
-    }
-
-    if (body === '+spin') {
-     
-            spinCheckbox.checked = true;
-            sendspinMessages = true;
-            await sendMessage('Spin Activated.');
-      
-    } else if (body === '-spin') {
-      
-            spinCheckbox.checked = false;
-            sendspinMessages = false;
-            await sendMessage('Spin Deactivated.');
-      
-    }
-
-    if (sendspinMessages && body === '.s') {
-                const responses = [
-                    `Let's Drink ${from} (っ＾▿＾)۶🍸🌟🍺٩(˘◡˘ )`,
-                    `kick`,
-                    `Let's Eat ( ◑‿◑)ɔ┏🍟--🍔┑٩(^◡^ ) ${from}`,
-                    `${from} you got ☔ Umbrella from me`,
-                    `You got a pair of shoes 👟👟 ${from}`,
-                    `Dress and Pants 👕 👖 for you ${from}`,
-                    `💻 Laptop for you ${from}`,
-                    `Great! ${from} you can travel now ✈️`,
-                    `${from} you have an apple 🍎`,
-                    `kick`,
-                    `Carrots for you 🥕 ${from}`,
-                    `${from} you got an ice cream 🍦`,
-                    `🍺 🍻 Beer for you ${from}`,
-                    `You wanna game with me 🏀 ${from}`,
-                    `Guitar 🎸 for you ${from}`,
-                    `For you❤️ ${from}`
-                ];
-                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                if (randomResponse === 'kick') {
-                    await sendMessage(`Sorry! You Got Kick ${from}`);
-                    await kickUser(from);
-                } else {
-                    await sendMessage(randomResponse);
-                }
-
-      }      } else {
-  console.log('Command from unauthorized user:', from);
-
-
+    
 
 
 
@@ -998,63 +884,6 @@ function handleRoomInfoResponse(response) {
         roomListBox.appendChild(roomItem);
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-let quizActive = false;
-
-async function deactivateQuiz() {
-    quizActive = false;
-    currentQuestionIndex = 0;
-    currentAnswer = '';
-    attempts = 0;
-    for (const user in userScores) {
-        userScores[user] = 0;
-    }
-    await sendMessage('The quiz has been deactivated.');
-}
-
-
-// Define activateQuiz function
-function activateQuiz() {
-    console.log('Quiz activated');
-    startQuizWithTimer();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 });
