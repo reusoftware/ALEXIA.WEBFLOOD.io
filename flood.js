@@ -43,6 +43,45 @@ let chatbox = document.getElementById('chatbox');
         await connectWebSocket(username, password);
     });
 
+async function connectWebSocket(username, password) {
+        statusDiv.textContent = 'Connecting to server...';
+        socket = new WebSocket('wss://chatp.net:5333/server');
+
+        socket.onopen = async () => {
+            isConnected = true;
+            statusDiv.textContent = 'Connected to server';
+            clearTimeout(reconnectTimeout);
+
+            const loginMessage = {
+                username: username,
+                password: password,
+                handler: 'login',
+                id: generatePacketID()
+            };
+            console.log('Sending login message:', loginMessage);
+            await sendMessageToSocket(loginMessage);
+        };
+
+        socket.onmessage = (event) => {
+            console.log('Received message:', event.data);
+            processReceivedMessage(event.data);
+        };
+
+        socket.onclose = () => {
+            isConnected = false;
+            statusDiv.textContent = 'Disconnected from server';
+            attemptReconnect(username, password);
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            statusDiv.textContent = 'WebSocket error. Check console for details.';
+            attemptReconnect(username, password);
+        };
+    }
+
+
+      
     joinRoomButton.addEventListener('click', async () => {
         const room = document.getElementById('room').value;
         await joinRoom(room);
@@ -105,43 +144,7 @@ function addCaptchaButtonListener() {
     
 
 
-   async function connectWebSocket(username, password) {
-        statusDiv.textContent = 'Connecting to server...';
-        socket = new WebSocket('wss://chatp.net:5333/server');
-
-        socket.onopen = async () => {
-            isConnected = true;
-            statusDiv.textContent = 'Connected to server';
-            clearTimeout(reconnectTimeout);
-
-            const loginMessage = {
-                username: username,
-                password: password,
-                handler: 'login',
-                id: generatePacketID()
-            };
-            console.log('Sending login message:', loginMessage);
-            await sendMessageToSocket(loginMessage);
-        };
-
-        socket.onmessage = (event) => {
-            console.log('Received message:', event.data);
-            processReceivedMessage(event.data);
-        };
-
-        socket.onclose = () => {
-            isConnected = false;
-            statusDiv.textContent = 'Disconnected from server';
-            attemptReconnect(username, password);
-        };
-
-        socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            statusDiv.textContent = 'WebSocket error. Check console for details.';
-            attemptReconnect(username, password);
-        };
-    }
-
+   
     async function attemptReconnect(username, password) {
         if (!isConnected) {
             statusDiv.textContent = 'Attempting to reconnect...';
