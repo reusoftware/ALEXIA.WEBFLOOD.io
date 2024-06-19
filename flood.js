@@ -2,7 +2,7 @@
  let socket;
     let isConnected = false;
     let packetIdNum = 0;
-    let sendWelcomeMessages = false;
+
     let currentUsername = '';
     let userList = [];
   let reconnectInterval = 10000; // 10 seconds for reconnect attempts
@@ -14,10 +14,7 @@ let captchaUrls = "";
   //  let sendCaptchaButton;
 let captchaImg, captchaTextbox, sendCaptchaButton;
 //=======================
-let quizInterval;
-//const quizIntervalTime = 10000; // Time in milliseconds (10 seconds for this example)
-const quizIntervalTime = 20000; // Time in milliseconds (10 seconds for this example)
- 
+
     const loginButton = document.getElementById('loginButton');
     const joinRoomButton = document.getElementById('joinRoomButton');
     const leaveRoomButton = document.getElementById('leaveRoomButton');
@@ -25,70 +22,22 @@ const quizIntervalTime = 20000; // Time in milliseconds (10 seconds for this exa
     const statusDiv = document.getElementById('status');
     const statusCount = document.getElementById('count');
   const joinlog = document.getElementById('joinlog');
-      // const chatbox = document.getElementById('chatbox');
-let chatbox = document.getElementById('chatbox');
-    const welcomeCheckbox = document.getElementById('welcomeCheckbox');
-   const spinCheckbox = document.getElementById('spinCheckbox');
-    const roomListbox = document.getElementById('roomListbox');
-     const usernameInput = document.getElementById('username');
+       const chatbox = document.getElementById('chatbox');
+
+      const usernameInput = document.getElementById('username');
  const userListbox = document.getElementById('userListbox');
     const debugBox = document.getElementById('debugBox');
-    const emojiList = document.getElementById('emojiList');
-    const messageInput = document.getElementById('message');
+const messageInput = document.getElementById('message');
  
   const targetInput = document.getElementById('target');
-    const banButton = document.getElementById('banButton');
-    const kickButton = document.getElementById('kickButton');
-const memButton = document.getElementById('memButton');
-const adminButton = document.getElementById('adminButton');
-const ownerButton = document.getElementById('ownerButton');
-const noneButton = document.getElementById('noneButton');
- const masterInput = document.getElementById('master');
-   const activateQuizCheckbox = document.getElementById('activateQuizCheckbox');
- let currentQuestionIndex = 0;
-        let attempts = 0;
-        const maxAttempts = 5;
-        const scores = [100, 200, 300, 400, 500];  // Scores for each attempt
-let userScores = {}; // To keep track of user scores
-let currentAnswer = null; // Current correct answer
-
-//==============
-
-//Start With 'p'~paper#Start With 'p'~power# start with 'o'~our# start with 'u'~usual# start 
-//===================
-
-noneButton.addEventListener('click', async () => {
-        const target = targetInput.value;
-        await setRole(target, 'none');
-    });
-ownerButton.addEventListener('click', async () => {
-        const target = targetInput.value;
-        await setRole(target, 'owner');
-    });
-adminButton.addEventListener('click', async () => {
-        const target = targetInput.value;
-        await setRole(target, 'admin');
-    });
- memButton.addEventListener('click', async () => {
-        const target = targetInput.value;
-        await setRole(target, 'member');
-    });
 
 
 
-kickButton.addEventListener('click', async () => {
-
- const target = targetInput.value;
-    await kickUser(target);
-
-});
 
 
-    banButton.addEventListener('click', async () => {
-        const target = targetInput.value;
-        await setRole(target, 'outcast');
-    });
 
+
+    
     loginButton.addEventListener('click', async () => {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -122,179 +71,7 @@ function addCaptchaButtonListener() {
         await sendCaptcha(captchaValue, captchaUrls);
     });
 }
-  const questionAnswerInput = document.getElementById('questionAnswerInput').value.trim();
-
-activateQuizCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            console.log('Check activated');
-            activateQuiz();
-}else{
-deactivateQuiz();
-        }
-
-
-
-
-    });
-
-
-
-
-
-// Function to parse the question list and generate quiz questions array
-function parseQuestionList(questionList) {
-    // Split the question list by '#' character to get individual lines
-    const lines =questionList.split('#');
-    const quizQuestions = [];
-
-    // Loop through each line in the question list
-    for (const line of lines) {
-        // Split the line by '~' to separate question and answer
-        const [prompt, answer] = line.split('~');
-
-        // Extract the prompt by removing the "Start With" part and trimming any leading/trailing spaces
-        const extractedPrompt = prompt.replace("Start With ", "").trim();
-
-        // Construct the question object and add it to the quizQuestions array
-        const questionObj = {
-            question: `${extractedPrompt}(${scrambleSentence(answer)})`, // Generate scrambled question
-            answer: answer.trim() // Trim any leading/trailing spaces from the answer
-        };
-        quizQuestions.push(questionObj);
-    }
-
-    return quizQuestions;
-}
-
-// Example question list
-const questionList =questionAnswerInput.value ;
-
-// Generate quiz questions array from the question list
-const quizQuestions = parseQuestionList(questionList);
-console.log(quizQuestions);
-
-function scrambleSentence(sentence) {
-    const words = sentence.split(' ');
-    const scrambledWords = words.map(word => {
-        const characters = word.split('');
-        const shuffledCharacters = shuffleArray(characters);
-        return shuffledCharacters.join('');
-    });
-    return scrambledWords.join(' ');
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function scrambleWord(word) {
-    const characters = word.split('');
-    const shuffledCharacters = shuffleArray(characters);
-    return shuffledCharacters.join('');
-}
-
-// Function to generate scrambled questions and answers
-function generateScrambledQuestionsAndAnswers(quizQuestions) {
-    const scrambledQuestions = [];
-    for (const questionObj of quizQuestions) {
-        const { question, answer } = questionObj;
-        const scrambledAnswer = scrambleWord(answer);
-        scrambledQuestions.push({ question, scrambledAnswer });
-    }
-    return scrambledQuestions;
-}
-
-async function startQuizWithTimer() {
-    currentQuestionIndex = 0;
-
-    // Generate scrambled questions and answers
-    const scrambledQuestions = generateScrambledQuestionsAndAnswers(quizQuestions);
-
-    while (currentQuestionIndex < scrambledQuestions.length) {
-        const { question, scrambledAnswer } = scrambledQuestions[currentQuestionIndex];
-
-        // Construct the message to send to the chat
-        const message = `Question: ${question} (Answer: ${scrambledAnswer})`;
-
-        // Send the message to the chat
-        await sendMessage(message);
-
-        attempts = 0;
-        let answeredCorrectly = false;
-
-        while (attempts < maxAttempts && !answeredCorrectly) {
-            // Wait for 20 seconds for user to answer
-            await new Promise(resolve => setTimeout(resolve, 20000));
-
-            // Check if the question was answered correctly
-            if (answeredCorrectly) {
-                break;
-            }
-
-            attempts++;
-        }
-
-        // If no correct answer was received after maxAttempts, reveal the correct answer
-        if (!answeredCorrectly) {
-            await sendMessage(`No correct answer received. The correct answer is: ${scrambledAnswer}`);
-        }
-
-        currentQuestionIndex++;
-    }
-
-    await sendMessage('Quiz finished!');
-}
-
-// Function to calculate score based on attempts
-function getScore(attempts) {
-    switch (attempts) {
-        case 0: return 500;
-        case 1: return 200;
-        case 2: return 100;
-        case 3: return 50;
-        case 4: return 10;
-        default: return 0;
-    }
-}
-
-
-//======================================
-
-
-
-// Function to handle form submission
-//document.getElementById('quizForm').addEventListener('submit', async function(event) {
-  //  event.preventDefault(); // Prevent the default form submission
-
-    const questionAnswerInput = document.getElementById('questionAnswerInput').value.trim();
-    if (questionAnswerInput) {
-        // Split the input into questions and answers
-        const lines = questionAnswerInput.split('\n');
-        const scrambledLines = lines.map(line => {
-            const [question, answer] = line.split('~').map(item => item.trim());
-            const scrambledQuestion = scrambleSentence(question);
-            const scrambledAnswer = scrambleSentence(answer);
-            return `Question: ${scrambledQuestion}\nAnswer: ${scrambledAnswer}`;
-        });
-
-        // Post the scrambled questions and answers to the chatroom
-        for (const line of scrambledLines) {
-            await sendMessage(line);
-        }
-    } else {
-        // Inform the user if the input is empty
-        alert('Please enter your questions and answers.');
-    }
-});
-
-
-//====================================
-
-
+  
    function addMessageToChatbox(username, message, avatarUrl) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
@@ -317,16 +94,8 @@ function getScore(attempts) {
 
         chatbox.appendChild(messageElement);
         chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
-
-  
-    welcomeCheckbox.addEventListener('change', () => {
-        sendWelcomeMessages = welcomeCheckbox.checked;
-    });
-spinCheckbox.addEventListener('change', () => {
-        sendspinMessages = spinCheckbox.checked;
-    });
+   }
+    
     roomListbox.addEventListener('change', async () => {
         const selectedRoom = roomListbox.value;
         if (selectedRoom) {
@@ -334,13 +103,7 @@ spinCheckbox.addEventListener('change', () => {
         }
     });
 
-    emojiList.addEventListener('click', (event) => {
-        if (event.target.classList.contains('emoji-item')) {
-            const emoji = event.target.textContent;
-            messageInput.value += emoji;
-        }
-    });
-
+    
 
 
 
