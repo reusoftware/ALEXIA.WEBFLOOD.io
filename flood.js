@@ -1,4 +1,4 @@
-   document.addEventListener('DOMContentLoaded', () => {
+2nd   document.addEventListener('DOMContentLoaded', () => {
  let socket;
     let isConnected = false;
     let packetIdNum = 0;
@@ -8,9 +8,7 @@
     let reconnectTimeout;
 //==================
 let captchaUrls = "";
-   // let captchaImg;
-   // let captchaTextbox;
-  //  let sendCaptchaButton;
+   
 let captchaImg, captchaTextbox, sendCaptchaButton;
 //=======================
 
@@ -109,11 +107,6 @@ function addCaptchaButtonListener() {
     });
 }
   
-
-
-//====================================
-
-
    function addMessageToChatbox(username, message, avatarUrl) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
@@ -134,8 +127,7 @@ function addCaptchaButtonListener() {
         messageElement.appendChild(usernameElement);
         messageElement.appendChild(textElement);
 
-        chatbox.appendChild(messageElement);
-        chatbox.scrollTop = chatbox.scrollHeight;
+        chatbox.appendChild(mes      chatbox.scrollTop = chatbox.scrollHeight;
     }
 
 
