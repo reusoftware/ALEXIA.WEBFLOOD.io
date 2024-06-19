@@ -535,39 +535,6 @@ statusCount.textContent = `Total User: ${count}`;
     });
 //===============
 
-const trimmedBody = body.trim();
-if (trimmedBody.startsWith('pv@')) {
-    console.log(`Detected 'pv@' prefix in message: ${trimmedBody}`);
- //   await sendMessage(`ok ${from}`);
-    
-    const username = trimmedBody.slice(3); // Extract the username after 'pv@'
-
-    console.log(`Extracted username: ${username}`);
-    
-    const packetID = generatePacketID(); // Assuming you have a function to generate packet IDs
-    const message = {
-        handler: 'profile_other',
-        type: username,
-        id: packetID
-    };
-    console.log(`Sending profile_other message: ${JSON.stringify(message)}`);
-    
-    await sendMessageToSocket(message);
-} else {
-    console.log(`Message does not start with 'pv@': ${trimmedBody}`);
-}
- const masterUsernames = masterInput.value.split('#').map(username => username.trim());
-
-    if (masterUsernames.includes(from)) {
-
-    
-
-
-
-
-
-}
-// Dim obj2 As Object = New With {Key .handler = "profile_other", Key .id = Me.PacketID, Key .type = username}
 
     } else if (type === 'image') {
         const bodyurl = messageObj.url;
@@ -810,17 +777,7 @@ async function setRole(username, role) {
         await sendMessageToSocket(obj2);  
 }
 
-    async function kickUser(username) {
-        const kickMessage = {
-            handler: "room_admin",
-            type: "kick",
-            id: generatePacketID(),
-            room: document.getElementById('room').value,
-            t_username: username,
-            t_role: "none"
-        };
-        await sendMessageToSocket(kickMessage);
-    }
+    
 
  function updateUserListbox() {
     userListbox.innerHTML = '';
