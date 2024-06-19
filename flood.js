@@ -1,19 +1,14 @@
-   document.addEventListener('DOMContentLoaded', () => {
- let socket;
+document.addEventListener('DOMContentLoaded', () => {
+    let socket;
     let isConnected = false;
     let packetIdNum = 0;
-
     let currentUsername = '';
     let userList = [];
-  let reconnectInterval = 10000; // 10 seconds for reconnect attempts
+    let reconnectInterval = 10000; // 10 seconds for reconnect attempts
     let reconnectTimeout;
-//==================
-let captchaUrls = "";
-   // let captchaImg;
-   // let captchaTextbox;
-  //  let sendCaptchaButton;
-let captchaImg, captchaTextbox, sendCaptchaButton;
-//=======================
+
+    let captchaUrls = "";
+    let captchaImg, captchaTextbox, sendCaptchaButton;
 
     const loginButton = document.getElementById('loginButton');
     const joinRoomButton = document.getElementById('joinRoomButton');
@@ -21,25 +16,17 @@ let captchaImg, captchaTextbox, sendCaptchaButton;
     const sendMessageButton = document.getElementById('sendMessageButton');
     const statusDiv = document.getElementById('status');
     const statusCount = document.getElementById('count');
-  const joinlog = document.getElementById('joinlog');
-       const chatbox = document.getElementById('chatbox');
-
-      const usernameInput = document.getElementById('username');
- const userListbox = document.getElementById('userListbox');
+    const joinlog = document.getElementById('joinlog');
+    const chatbox = document.getElementById('chatbox');
+    const usernameInput = document.getElementById('username');
+    const userListbox = document.getElementById('userListbox');
     const debugBox = document.getElementById('debugBox');
-const messageInput = document.getElementById('message');
- 
-  const targetInput = document.getElementById('target');
+    const messageInput = document.getElementById('message');
+    const targetInput = document.getElementById('target');
+    const roomListbox = document.getElementById('roomlistbox');
 
-
-
-
-
-
-
-    
     loginButton.addEventListener('click', async () => {
-        const username = document.getElementById('username').value;
+        const username = usernameInput.value;
         const password = document.getElementById('password').value;
         currentUsername = username;
         await connectWebSocket(username, password);
@@ -55,24 +42,20 @@ const messageInput = document.getElementById('message');
         await leaveRoom(room);
     });
 
-     sendMessageButton.addEventListener('click', async () => {
-       const message = messageInput.value;
-       await sendMessage(message);
-
-
+    sendMessageButton.addEventListener('click', async () => {
+        const message = messageInput.value;
+        await sendMessage(message);
     });
 
+    function addCaptchaButtonListener() {
+        sendCaptchaButton.addEventListener('click', async () => {
+            console.log('send captcha');
+            const captchaValue = captchaTextbox.value;
+            await sendCaptcha(captchaValue, captchaUrls);
+        });
+    }
 
- // Event listener for the captcha button
-function addCaptchaButtonListener() {
-    sendCaptchaButton.addEventListener('click', async () => {
-        console.log('send captcha');
-        const captchaValue = captchaTextbox.value;
-        await sendCaptcha(captchaValue, captchaUrls);
-    });
-}
-  
-   function addMessageToChatbox(username, message, avatarUrl) {
+    function addMessageToChatbox(username, message, avatarUrl) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
 
@@ -94,8 +77,8 @@ function addCaptchaButtonListener() {
 
         chatbox.appendChild(messageElement);
         chatbox.scrollTop = chatbox.scrollHeight;
-   }
-    
+    }
+
     roomListbox.addEventListener('change', async () => {
         const selectedRoom = roomListbox.value;
         if (selectedRoom) {
@@ -103,12 +86,7 @@ function addCaptchaButtonListener() {
         }
     });
 
-    
-
-
-
-
-   async function connectWebSocket(username, password) {
+    async function connectWebSocket(username, password) {
         statusDiv.textContent = 'Connecting to server...';
         socket = new WebSocket('wss://chatp.net:5333/server');
 
@@ -152,7 +130,7 @@ function addCaptchaButtonListener() {
         }
     }
 
-     async function joinRoom(roomName) {
+    async function joinRoom(roomName) {
         if (isConnected) {
             const joinMessage = {
                 handler: 'room_join',
@@ -161,10 +139,9 @@ function addCaptchaButtonListener() {
             };
             await sendMessageToSocket(joinMessage);
             await fetchUserList(roomName);
-            await chat('syntax-error', 'your message here');
-          const room = document.getElementById('room').value;
-         
-           if (sendWelcomeMessages) {
+
+            const room = document.getElementById('room').value;
+            if (sendWelcomeMessages) {
                 const welcomeMessage = `Hello world, I'm a web bot! Welcome, ${currentUsername}!`;
                 await sendMessage(welcomeMessage);
             }
@@ -179,7 +156,6 @@ function addCaptchaButtonListener() {
             joinRoom(room);
         }
     }
-
 
     async function leaveRoom(roomName) {
         if (isConnected) {
@@ -212,92 +188,64 @@ function addCaptchaButtonListener() {
         }
     }
 
+    async function sendCaptcha(captcha, captchaUrl) {
+        if (isConnected) {
+            const messageData = {
+                handler: 'room_join_captcha',
+                id: generatePacketID(),
+                name: document.getElementById('room').value,
+                password: '',
+                c_code: captcha,
+                c_id: '',
+                captcha_url: captchaUrl
+            };
 
+            console.log('Sending captcha:', messageData);
 
-
-  
-
-
-async function sendCaptcha(captcha, captchaUrl) {
-    if (isConnected) {
-        const messageData = {
-            handler: 'room_join_captcha',
-            id: generatePacketID(),  
-            name: document.getElementById('room').value, 
-            password: '',  // Empty password
-            c_code: captcha,  // The captcha code
-            c_id: '',  // Empty captcha ID
-            captcha_url: captchaUrl  // The captcha URL
-        };
-
-        console.log('Sending captcha:', messageData);  // Debug statement
-
-        await sendMessageToSocket(messageData);
-    } else {
-        statusDiv.textContent = 'Not connected to server';
-        console.log('Not connected to server');  // Debug statement
+            await sendMessageToSocket(messageData);
+        } else {
+            statusDiv.textContent = 'Not connected to server';
+            console.log('Not connected to server');
+        }
     }
-}
 
+    function handleCaptcha(messageObj) {
+        const captchaUrl = messageObj.captcha_url;
 
+        captchaImg = document.createElement('img');
+        captchaImg.src = captchaUrl;
+        captchaImg.style.maxWidth = '200px';
+        captchaUrls = captchaUrl;
 
+        captchaTextbox = document.createElement('input');
+        captchaTextbox.type = 'text';
+        captchaTextbox.placeholder = 'Enter Captcha';
 
-// Function to handle 'room_needs_captcha' event
-function handleCaptcha(messageObj) {
-    const captchaUrl = messageObj.captcha_url;
+        sendCaptchaButton = document.createElement('button');
+        sendCaptchaButton.textContent = 'Send Captcha';
 
-    // Create captcha image element
-    captchaImg = document.createElement('img');
-    captchaImg.src = captchaUrl;
-    captchaImg.style.maxWidth = '200px'; 
-    captchaUrls = captchaUrl;
+        chatbox.innerHTML = '';
+        chatbox.appendChild(captchaImg);
+        chatbox.appendChild(captchaTextbox);
+        chatbox.appendChild(sendCaptchaButton);
+        chatbox.scrollTop = chatbox.scrollHeight;
 
-    // Create textbox for entering captcha text
-    captchaTextbox = document.createElement('input');
-    captchaTextbox.type = 'text';
-    captchaTextbox.placeholder = 'Enter Captcha';
+        addCaptchaButtonListener();
+    }
 
-    // Create button for sending captcha
-    sendCaptchaButton = document.createElement('button');
-    sendCaptchaButton.textContent = 'Send Captcha';
-
-    // Append captcha image, textbox, and button to the chatbox
-    const chatbox = document.getElementById('chatbox'); // Ensure chatbox element exists
-    chatbox.innerHTML = ''; // Clear previous captcha images if any
-    chatbox.appendChild(captchaImg);
-    chatbox.appendChild(captchaTextbox);
-    chatbox.appendChild(sendCaptchaButton);
-    chatbox.scrollTop = chatbox.scrollHeight;
-
-    // Add the event listener for the captcha button
-    addCaptchaButtonListener();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-async function chat(to, body) {
-    const packetID = generatePacketID();  // Assuming generatePacketID() generates a unique packet ID
-    const message = {
-        handler: 'chat_message',
-        type: 'text',
-        id: packetID,
-        body: body,
-        to: to,
-        url: '',
-        length: '0'
-    };
-    await sendMessageToSocket(message); // Assuming sendMessageToSocket is an asynchronous function to send the message
-}
+    async function chat(to, body) {
+        const packetID = generatePacketID();
+        const message = {
+            handler: 'chat_message',
+            type: 'text',
+            id: packetID,
+            body: body,
+            to: to,
+            url: '',
+            length: '0'
+        };
+        await sendMessageToSocket(message);
+    }
 
     async function sendMessageToSocket(message) {
         return new Promise((resolve, reject) => {
@@ -310,487 +258,96 @@ async function chat(to, body) {
         });
     }
 
-
-function generatePacketID() {
-    packetIdNum += 1;
-    return `R.U.BULAN©pinoy-2023®#${packetIdNum.toString().padStart(3, '0')}`;
-}
- 
-
-
-
-
-
-  function processReceivedMessage(message) {
-    console.log('Received message:', message);
-    debugBox.value += `${message}\n`;
-
-
-    try {
-        const jsonDict = JSON.parse(message);
-
-        if (jsonDict) {
-            const handler = jsonDict.handler;
-
-            if (handler === 'login_event') {
-                handleLoginEvent(jsonDict);
-            } else if (handler === 'room_event') {
-                handleRoomEvent(jsonDict);
-
-            } else if (handler === 'chat_message') {
-                //   displayChatMessage(jsonDict);
-            } else if (handler === 'presence') {
-                onUserProfileUpdates(jsonDict);
-            } else if (handler === 'group_invite') {
-                onMucInvitation(jsonDict.inviter, jsonDict.name, 'private');
-            } else if (handler === 'user_online' || handler === 'user_offline') {
-                onUserPresence(jsonDict);
-            } else if (handler === 'muc_event') {
-                handleMucEvent(jsonDict);
-            } else if (handler === 'last_activity') {
-                onUserActivityResult(jsonDict);
-            } else if (handler === 'roster') {
-                onRoster(jsonDict);
-            } else if (handler === 'friend_requests') {
-                onFriendRequest(jsonDict);
-            } else if (handler === 'register_event') {
-                handleRegisterEvent(jsonDict);  
-            } else if (handler === 'followers_event') {
-                onFollowersList(jsonDict);
-            } else if (handler === 'room_info') {
-              handleMucList(jsonDict);
- } else if (handler === 'profile_other') {
-              handleprofother(jsonDict);
-            } else {
-                console.log('Unknown handler:', handler);
-            }
-        }
-    } catch (ex) {
-        console.error('Error processing received message:', ex);
+    function generatePacketID() {
+        packetIdNum += 1;
+        return `R.U.BULAN©pinoy-2023®#${packetIdNum.toString().padStart(3, '0')}`;
     }
-}
 
+    function processReceivedMessage(message) {
+        console.log('Received message:', message);
+        debugBox.value += `${message}\n`;
 
+        try {
+            const jsonDict = JSON.parse(message);
 
-//  obj2 = New With {Key .handler = "room_message", Key .type = "image", Key .id = packetID, Key .url = imageUrl, Key .room = [to], Key .body = "", Key .length = "0"}
-           
+            if (jsonDict) {
+                const handler = jsonDict.handler;
 
+                if (handler === 'login_event') {
+                    handleLoginEvent(jsonDict);
+                } else if (handler === 'room_event') {
+                    handleRoomEvent(jsonDict);
+                } else if (handler === 'chat_message') {
+                    //   displayChatMessage(jsonDict);
+                } else if (handler === 'presence') {
+                    onUserProfileUpdates(jsonDict);
+                } else if (handler === 'group_invite') {
+                    onMucInvitation(jsonDict.inviter, jsonDict.name, 'private');
+                } else if (handler === 'user_online' || handler === 'user_offline') {
+                    onUserPresence(jsonDict);
+                } else if (handler === 'muc_announcement') {
+                    handleRoomAnnouncements(jsonDict);
+                } else if (handler === 'room_announcement') {
+                    handleRoomAnnouncements(jsonDict);
+                } else if (handler === 'room_join_captcha') {
+                    handleCaptcha(jsonDict);
+                }
+            }
+        } catch (e) {
+            console.error('Error processing received message:', e);
+        }
+    }
 
-
-
-   async function sendimage(url) {
+    async function fetchUserList(roomName) {
         if (isConnected) {
-            const messageData = {
-                handler: 'room_message',
-                type: 'image',
+            const userListMessage = {
+                handler: 'user_list',
                 id: generatePacketID(),
-                body: '',
-                room: document.getElementById('room').value,
-                url: url,
-                length: '0'
+                name: roomName
             };
-            await sendMessageToSocket(messageData);
+
+            await sendMessageToSocket(userListMessage);
         } else {
             statusDiv.textContent = 'Not connected to server';
         }
     }
 
+    function handleLoginEvent(messageObj) {
+        const status = messageObj.status;
 
-
-
-
-
-     function handleMucList(messageObj) {
-        const roomList = messageObj.rooms;
-        roomListbox.innerHTML = ''; // Clear the current list
-
-        roomList.forEach(room => {
-            const option = document.createElement('option');
-            option.value = room.name;
-            option.textContent = `${room.name} (${room.count} users)`;
-            roomListbox.appendChild(option);
-        });
-    }
-
-
-
-    async function handleLoginEvent(messageObj) {
-        const type = messageObj.type;
-        if (type === 'success') {
-            statusDiv.textContent = 'Online';
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            await chat('syntax-error', `ABOT WEB BOT: ${username} / ${password}`);
-
-            const mucType = "public_rooms"; 
-            const packetID = generatePacketID();
-            const mucPageNum = 1; 
-
-            await getChatroomList(mucType, packetID, mucPageNum);
-            rejoinRoomIfNecessary(); 
-        }
-    }
-
-
-
-
-async function handleRoomEvent(messageObj) {
-    const type = messageObj.type;
-    const userName = messageObj.username || 'Unknown';
-    const role = messageObj.role;
-    const count = messageObj.current_count;
-    const roomName = messageObj.name;
-  
-    if (type === 'you_joined') {
-        displayChatMessage({ from: '', body: `**You** joined the room as ${role}` });
-      
-  joinlog.textContent = `You Join the  ${roomName }`;
-        // Display room subject with proper HTML rendering
-        displayRoomSubject(`Room subject: ${messageObj.subject} (by ${messageObj.subject_author})`);
-
-        // Display list of users with roles
-        messageObj.users.forEach(user => {
-            displayChatMessage({ from: user.username, body: `joined the room as ${user.role}`, role: user.role }, 'green');
-        });
-
-        // Update the user list
-        userList = messageObj.users;
-        updateUserListbox();
-statusCount.textContent = `Total User: ${count}`;
-
- chatbox.removeChild(captchaImg);
-      chatbox.removeChild(captchaTextbox);
-      chatbox.removeChild(sendCaptchaButton);
-
-
-
-    } else if (type === 'user_joined') {
-        displayChatMessage({ from: userName, body: `joined the room as ${role}`, role }, 'green');
-            
-  
-       if (userName === 'prateek') {
-            await setRole(userName, 'outcast');
-       }
-        // Add the new user to the user list
-        userList.push({ username: userName, role });
-        updateUserListbox();
-       statusCount.textContent = `Total User: ${count}`;
-    } else if (type === 'user_left') {
-        displayChatMessage({ from: userName, body: 'left the room.', role }, 'darkgreen');
- //statusCount.textContent = `Total User: ${count}`;
-   //   userListbox.textContent = `Current User: ${count}`;
-             statusCount.textContent = `Total User: ${count}`;
-//  joinlog.textContent = `you join the  ${roomName }`;
-       if (sendWelcomeMessages) {
-            const goodbyeMessage = `Bye ${userName}!`;
-            await sendMessage(goodbyeMessage);
-        }
-
-        // Remove the user from the user list
-        userList = userList.filter(user => user.username !== userName);
-        updateUserListbox();
-    } else if (type === 'text') {
-    const body = messageObj.body;
-    const from = messageObj.from;
-    const avatar = messageObj.avatar_url;
-
-    displayChatMessage({
-        from: messageObj.from,
-        body: messageObj.body,
-        role: messageObj.role,
-        avatar: messageObj.avatar_url
-    });
-//===============
-
-
-
- const masterUsernames = masterInput.value.split('#').map(username => username.trim());
-
-    if (masterUsernames.includes(from)) {
-
-    
-
-
-
-}
-// Dim obj2 As Object = New With {Key .handler = "profile_other", Key .id = Me.PacketID, Key .type = username}
-
-    } else if (type === 'image') {
-        const bodyurl = messageObj.url;
-        const from = messageObj.from;
-        const avatar = messageObj.avatar_url;
-
-        displayChatMessage({
-            from: messageObj.from,
-            bodyurl: messageObj.url,
-            role: messageObj.role,
-            avatar: messageObj.avatar_url
-        });
-    } else if (type === 'audio') {
-        const bodyurl = messageObj.url;
-        const from = messageObj.from;
-        const avatar = messageObj.avatar_url;
-
-        displayChatMessage({
-            from: messageObj.from,
-            bodyurl: messageObj.to,
-            role: messageObj.role,
-            avatar: messageObj.avatar_url
-        });
-
-
-}else  if (type === 'gift') {
-    const toRoom = messageObj.to_room;
-    const toId = messageObj.to_id;
-    const resources = messageObj.resources;
-    const repeats = messageObj.repeats;
-    const gift = messageObj.gift;
-    const animation = messageObj.animation;
-    const room = messageObj.room;
-    const userId = messageObj.user_id;
-    const to = messageObj.to;
-    const from = messageObj.from;
-    const timestamp = messageObj.timestamp;
-    const id = messageObj.id;
-
-    displayChatMessage({
-        toRoom: toRoom,
-        toId: toId,
-        resources: resources,
-        repeats: repeats,
-        gift: gift,
-        animation: animation,
-        room: room,
-        userId: userId,
-        to: to,
-        from: from,
-        timestamp: timestamp,
-        id: id
-    });
-}
-
- else      if (type === 'room_needs_captcha') {
-    
- handleCaptcha(messageObj);
-    } else if (type === 'role_changed') {
-        const oldRole = messageObj.old_role;
-        const newRole = messageObj.new_role;
-        const user = messageObj.t_username;
-        const actor = messageObj.actor;
-        const color = getRoleChangeColor(newRole);
-        displayChatMessage({ from: '', body: `${user} ${newRole} by ${actor}` }, color);
-
-        // Update the user's role in the user list
-        const userObj = userList.find(user => user.username === user);
-        if (userObj) {
-            userObj.role = newRole;
-            updateUserListbox();
-        }
-    } else if (type === 'room_create') {
-        if (messageObj.result === 'success') {
-            await joinRoom(messageObj.name);
-        } else if (messageObj.result === 'room_exists') {
-            statusDiv.textContent = `Room ${messageObj.name} already exists.`;
-        } else if (messageObj.result === 'empty_balance') {
-            statusDiv.textContent = 'Cannot create room: empty balance.';
+        if (status === 'success') {
+            statusDiv.textContent = 'Login successful!';
         } else {
-            statusDiv.textContent = 'Error creating room.';
-        }
-
-} else if (type === 'room_needs_password') {
-  const room = document.getElementById('room').value;
-  displayChatMessage({
-        from: room,
-        body: 'Room is locked!',
-        color: 'red'
-    });
-
-    }
-
-}
-
-
-
-
-
-
-
-
-
-
-function displayChatMessage(messageObj, color = 'black') {
-    const { from, body, bodyurl, role, avatar, type } = messageObj;
-    const newMessage = document.createElement('div');
-    newMessage.style.display = 'flex';
-    newMessage.style.alignItems = 'center';
-    newMessage.style.marginBottom = '10px';
-
-    // Add avatar if available
-    if (avatar) {
-        const avatarImg = document.createElement('img');
-        avatarImg.src = avatar;
-        avatarImg.alt = `${from}'s avatar`;
-        avatarImg.style.width = '40px';
-        avatarImg.style.height = '40px';
-        avatarImg.style.borderRadius = '50%';
-        avatarImg.style.marginRight = '10px';
-        newMessage.appendChild(avatarImg);
-    }
-
-    // Add the sender's name with role-based color if available
-    if (from) {
-        const coloredFrom = document.createElement('span');
-        coloredFrom.textContent = `${from}: `;
-        coloredFrom.style.color = getRoleColor(role);
-        coloredFrom.style.fontWeight = 'bold';
-        newMessage.appendChild(coloredFrom);
-    }
-
-    // Handle different message types
-    if (type === 'gift') {
-        // Construct the gift message display
-        const giftMessage = document.createElement('span');
-        giftMessage.innerHTML = `
-            Gift from ${messageObj.from} to ${messageObj.to} in ${messageObj.toRoom}<br>
-            Gift: ${messageObj.gift}<br>
-            Resources: ${messageObj.resources}<br>
-            Repeats: ${messageObj.repeats}<br>
-            Animation: ${messageObj.animation}<br>
-            Room: ${messageObj.room}<br>
-            User ID: ${messageObj.userId}<br>
-            Timestamp: ${new Date(parseInt(messageObj.timestamp)).toLocaleString()}<br>
-            ID: ${messageObj.id}
-        `;
-        giftMessage.style.color = color;
-        newMessage.appendChild(giftMessage);
-    } else {
-        // Check if the bodyurl is an audio file by checking the file extension
-        if (bodyurl && bodyurl.match(/\.(mp3|wav|ogg|m4a)$/i)) {
-            const audioElement = document.createElement('audio');
-            audioElement.src = bodyurl;
-            audioElement.controls = true; // Enable built-in controls for the audio player
-            newMessage.appendChild(audioElement);
-        } 
-        // If the bodyurl is an image URL
-        else if (bodyurl && bodyurl.match(/\.(jpeg|jpg|gif|png)$/i)) {
-            const imageElement = document.createElement('img');
-            imageElement.src = bodyurl;
-            imageElement.style.maxWidth = '140px'; // Set maximum width for the image
-            newMessage.appendChild(imageElement);
-        } 
-        // For regular text messages
-        else {
-            const messageBody = document.createElement('span');
-            messageBody.textContent = body;
-            messageBody.style.color = color;
-            newMessage.appendChild(messageBody);
+            statusDiv.textContent = 'Login failed!';
         }
     }
 
-    // Append the new message to the chatbox and scroll to the bottom
-    const chatbox = document.getElementById('chatbox');
-    chatbox.appendChild(newMessage);
-    chatbox.scrollTop = chatbox.scrollHeight;
-}
+    function handleRoomEvent(messageObj) {
+        const status = messageObj.status;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
- 
-
-
-
-     async function getChatroomList(mucType, packetID, mucPageNum) {
-        const listRequest = {
-            handler: 'muc_list',
-            type: mucType,
-            id: packetID,
-            page: mucPageNum
-        };
-        await sendMessageToSocket(listRequest);
+        if (status === 'success') {
+            statusDiv.textContent = 'Room joined successfully!';
+            joinlog.textContent = 'Room joined successfully!';
+            addMessageToChatbox('System', 'You have joined the room', '');
+        } else {
+            statusDiv.textContent = 'Room joining failed!';
+            joinlog.textContent = 'Room joining failed!';
+        }
     }
 
-
-socket.on('message', (messageObj) => {
-    const type = messageObj.type;
-
-    if (type === 'typing') {
-        handleTypingEvent(messageObj);
-    } else if (type === 'room_info_response') {
-        handleRoomInfoResponse(messageObj);
-    } else {
-        // Handle other message types
-        displayChatMessage(messageObj);
+    function onUserProfileUpdates(messageObj) {
+        console.log('User profile updates:', messageObj);
     }
-});
 
-function handleRoomInfoResponse(response) {
-    const roomListBox = document.getElementById('roomlistbox');
-    roomListBox.innerHTML = ''; // Clear previous list
+    function onMucInvitation(inviter, roomName, roomType) {
+        console.log('MUC invitation:', { inviter, roomName, roomType });
+    }
 
-    response.rooms.forEach(room => {
-        const roomItem = document.createElement('li');
-        roomItem.textContent = room.name; // Assuming room object has a name property
-        roomListBox.appendChild(roomItem);
-    });
-}
+    function onUserPresence(messageObj) {
+        console.log('User presence:', messageObj);
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    function handleRoomAnnouncements(messageObj) {
+        console.log('Room announcements:', messageObj);
+    }
 });
