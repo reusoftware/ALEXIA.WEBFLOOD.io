@@ -673,20 +673,20 @@ function displayChatMessage(messageObj, color = 'black') {
     // Handle different message types
     if (type === 'gift') {
         // Construct the gift message display
-        const giftMessage = document.createElement('span');
-        giftMessage.innerHTML = `
-            Gift from ${messageObj.from} to ${messageObj.to} in ${messageObj.toRoom}<br>
-            Gift: ${messageObj.gift}<br>
-            Resources: ${messageObj.resources}<br>
-            Repeats: ${messageObj.repeats}<br>
-            Animation: ${messageObj.animation}<br>
-            Room: ${messageObj.room}<br>
-            User ID: ${messageObj.userId}<br>
-            Timestamp: ${new Date(parseInt(messageObj.timestamp)).toLocaleString()}<br>
-            ID: ${messageObj.id}
-        `;
-        giftMessage.style.color = color;
-        newMessage.appendChild(giftMessage);
+    //    const giftMessage = document.createElement('span');
+    //    giftMessage.innerHTML = `
+     //       Gift from ${messageObj.from} to ${messageObj.to} in ${messageObj.toRoom}<br>
+     //       Gift: ${messageObj.gift}<br>
+     //       Resources: ${messageObj.resources}<br>
+     //       Repeats: ${messageObj.repeats}<br>
+     //       Animation: ${messageObj.animation}<br>
+     //       Room: ${messageObj.room}<br>
+      //      User ID: ${messageObj.userId}<br>
+     //       Timestamp: ${new Date(parseInt(messageObj.timestamp)).toLocaleString()}<br>
+      //      ID: ${messageObj.id}
+       // `;
+      //  giftMessage.style.color = color;
+      //  newMessage.appendChild(giftMessage);
     } else {
         // Check if the bodyurl is an audio file by checking the file extension
         if (bodyurl && bodyurl.match(/\.(mp3|wav|ogg|m4a)$/i)) {
